@@ -1,44 +1,37 @@
 import dialogflow
 import uuid
-from google.cloud import storage
 import os
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="credential.json"
+from weather import weather
+usersays = []
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="key_weather.json"
+#Pegando a sessão atual
 session = uuid.uuid1() 
-
-def implicit():
-    from google.cloud import storage
-
-    # If you don't specify credentials when constructing the client, the
-    # client library will look for credentials in the environment.
-    storage_client = storage.Client()
-
-    # Make an authenticated API request
-    buckets = list(storage_client.list_buckets())
-    print(buckets)
 
 def detect_intent_texts(project_id, session_id, texts, language_code):
     session_client = dialogflow.SessionsClient()
 
     session = session_client.session_path(project_id, session_id)
-    print('Session path: {}\n'.format(session))
+
+    #caminho da sessão
+    #print('Session path: {}\n'.format(session))
 
     for text in texts:
-        text_input = dialogflow.types.TextInput(
-            text=text, language_code=language_code)
 
+        text_input = dialogflow.types.TextInput(text=text, language_code=language_code)
         query_input = dialogflow.types.QueryInput(text=text_input)
+        response = session_client.detect_intent(session=session, query_input=query_input)
 
-        response = session_client.detect_intent(
-            session=session, query_input=query_input)
+        # Formato de texto enviado pelo usuario
+        #print('Query text: {}'.format(response.query_result.query_text))
 
-        print('=' * 20)
-        print('Query text: {}'.format(response.query_result.query_text))
-        print('Detected intent: {} (confidence: {})\n'.format(
-            response.query_result.intent.display_name,
-            response.query_result.intent_detection_confidence))
-        print('Fulfillment text: {}\n'.format(
-            response.query_result.fulfillment_text))
+        #Linha de codigo para mostrar qual intent entrou e o nivel de confidence 
+        #print('Detected intent: {} (confidence: {})\n'.format(
+        #response.query_result.intent.display_name,response.query_result.intent_detection_confidence))
+        print('Bot : {}\n'.format(response.query_result.fulfillment_text))
 
-texto = input('You: ')
-detect_intent_texts( 'workever-205011', session, texto, 'pt-br')
+while True:
+    usersays.append(input('You :'))
+    detect_intent_texts( 'weather-318f9', session, usersays, 'en')
+    usersays.clear()
+
